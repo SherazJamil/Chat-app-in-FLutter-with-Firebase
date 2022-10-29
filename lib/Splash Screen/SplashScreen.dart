@@ -1,7 +1,6 @@
+import 'package:chat_app/Authentication%20Methods/Autheticate.dart';
 import 'package:flutter/material.dart';
 import 'package:splash_screen_view/SplashScreenView.dart';
-
-import '../Login & SignUp/Login.dart';
 
 class Splashscreen extends StatefulWidget {
   const Splashscreen({Key? key}) : super(key: key);
@@ -14,7 +13,7 @@ class _SplashscreenState extends State<Splashscreen> {
   @override
   Widget build(BuildContext context) {
     return SplashScreenView(
-      navigateRoute: const Loginscreen(),
+      navigateRoute:  Authenticate(),
       duration: 3000,
       imageSize: 150,
       imageSrc: "assets/Chat.png",
