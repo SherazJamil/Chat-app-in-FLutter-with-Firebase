@@ -1,5 +1,6 @@
 import 'package:chat_app/Splash%20Screen/SplashScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const MyApp());
@@ -8,10 +9,21 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
+
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Color(0xFFFF6607),
+          statusBarBrightness: Brightness.light,
+          statusBarIconBrightness: Brightness.light,
+        ));
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Splashscreen(),
     );
   }

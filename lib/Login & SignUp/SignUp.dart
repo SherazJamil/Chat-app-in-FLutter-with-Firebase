@@ -221,7 +221,7 @@ class _SignUpscreenState extends State<SignUpscreen> {
                                     borderRadius: BorderRadius.circular(10)
                                 ),
                                 title: const Text(
-                                  'MiChat SignUp',
+                                  'Mi Chat SignUp',
                                   style: TextStyle(
                                     color: Colors.deepOrange,
                                     fontWeight: FontWeight.bold,

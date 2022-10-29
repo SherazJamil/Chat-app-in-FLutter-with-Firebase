@@ -1,3 +1,4 @@
+import 'package:chat_app/Login%20&%20SignUp/SignUp.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -214,6 +215,7 @@ class _LoginscreenState extends State<Loginscreen> {
                       ),
                       InkWell(
                         onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const SignUpscreen()));
                         },
                         child: const Text(
                           "SignUp",
