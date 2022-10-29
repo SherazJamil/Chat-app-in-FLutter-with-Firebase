@@ -28,6 +28,7 @@ class _SignUpscreenState extends State<SignUpscreen> {
     // }
   }
 
+  final nameEditingController = TextEditingController();
   final emailEditingController = TextEditingController();
   final passwordEditingController = TextEditingController();
   final GlobalKey<FormState> formkey = GlobalKey<FormState>();
@@ -156,6 +157,31 @@ class _SignUpscreenState extends State<SignUpscreen> {
                 key: formkey,
                 child: Column(
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: TextFormField(
+                        controller: nameEditingController,
+                        decoration: InputDecoration(
+                            hintText: "Enter your Name",
+                            hintStyle: const TextStyle(
+                              color: Colors.black54,
+                            ),
+                            fillColor: Colors.grey.shade300,
+                            filled: true,
+                            prefixIcon: const Icon(
+                              FontAwesomeIcons.user,
+                              color: Colors.black,
+                              size: 20,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide.none,
+                            )),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 12,
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10.0),
                       child: TextFormField(
