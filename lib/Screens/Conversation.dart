@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -6,108 +8,52 @@ import 'package:grouped_list/grouped_list.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
-class ConversationScreen extends StatefulWidget {
-  const ConversationScreen({Key? key}) : super(key: key);
+class ConversationScreen extends StatelessWidget {
 
-  @override
-  State<ConversationScreen> createState() => _ConversationScreenState();
-}
+  late final Map<String, dynamic> userMap;
+  late final String chatRoomId;
 
-class _ConversationScreenState extends State<ConversationScreen> {
+  ConversationScreen({Key? key, required this.chatRoomId,required this.userMap}) : super(key: key);
 
   File? image;
 
-  Future pickImage() async {
-    try {
-      final image = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
-      );
-      if (image == null) return;
-      final imageTemporary = File(image.path);
-      setState(() => this.image = imageTemporary);
-    } on PlatformException catch (e) {
-      print('Failed to pick image: $e');
-    }
-  }
+  // Future pickImage() async {
+  //   try {
+  //     final image = await ImagePicker().pickImage(
+  //       source: ImageSource.gallery,
+  //     );
+  //     if (image == null) return;
+  //     final imageTemporary = File(image.path);
+  //     setState(() => this.image = imageTemporary);
+  //   } on PlatformException catch (e) {
+  //     print('Failed to pick image: $e');
+  //   }
+  // }
 
   final msgEditingController = TextEditingController();
-  List<Message> messages = [
-    Message(
-      text: 'Ok',
-      date: DateTime.now().subtract(const Duration(days: 1, minutes: 1)),
-      isSendbyMe: true,
-    ),
-    Message(
-      text: 'Yes. This opinion is best. Lets meet tonight.',
-      date: DateTime.now().subtract(const Duration(days: 1, minutes: 1)),
-      isSendbyMe: false,
-    ),
-    Message(
-      text: 'I think we should go to Rome',
-      date: DateTime.now().subtract(const Duration(days: 2, minutes: 2)),
-      isSendbyMe: true,
-    ),
-    Message(
-      text: 'You can give your opinion then we shall decide.',
-      date: DateTime.now().subtract(const Duration(days: 2, minutes: 2)),
-      isSendbyMe: false,
-    ),
-    Message(
-      text: 'Ok. SO which place do you decide?',
-      date: DateTime.now().subtract(const Duration(days: 2, minutes: 2)),
-      isSendbyMe: true,
-    ),
-    Message(
-      text: 'Yes. They are ready',
-      date: DateTime.now().subtract(const Duration(days: 2, minutes: 2)),
-      isSendbyMe: false,
-    ),
-    Message(
-      text: 'Offcourse. Do you ask from our other friends?',
-      date: DateTime.now().subtract(const Duration(days: 3, minutes: 3)),
-      isSendbyMe: true,
-    ),
-    Message(
-      text: 'Can we go on a trip?',
-      date: DateTime.now().subtract(const Duration(days: 3, minutes: 3)),
-      isSendbyMe: false,
-    ),
-    Message(
-      text: 'Yes.',
-      date: DateTime.now().subtract(const Duration(days: 3, minutes: 3)),
-      isSendbyMe: true,
-    ),
-    Message(
-      text: 'Are you free for a week?',
-      date: DateTime.now().subtract(const Duration(days: 3, minutes: 3)),
-      isSendbyMe: false,
-    ),
-    Message(
-      text: 'I am good.',
-      date: DateTime.now().subtract(const Duration(days:3, minutes: 3)),
-      isSendbyMe: true,
-    ),
-    Message(
-      text: 'I am fine. What about you?',
-      date: DateTime.now().subtract(const Duration(days:3, minutes: 3)),
-      isSendbyMe: false,
-    ),
-    Message(
-      text: 'How are you?',
-      date: DateTime.now().subtract(const Duration(days:3, minutes: 3)),
-      isSendbyMe: true,
-    ),
-    Message(
-      text: 'Hi',
-      date: DateTime.now().subtract(const Duration(days: 3, minutes: 3)),
-      isSendbyMe: false,
-    ),
-    Message(
-      text: 'Hello',
-      date: DateTime.now().subtract(const Duration(days: 3, minutes: 3)),
-      isSendbyMe: true,
-    ),
-  ].reversed.toList();
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseAuth auth = FirebaseAuth.instance;
+
+  void onSendMessage() async {
+    if (msgEditingController.text.isNotEmpty) {
+      Map<String, dynamic> messages = {
+        "isSendbyMe": auth.currentUser!.displayName,
+        "message": msgEditingController.text,
+        "type": "text",
+        "time": FieldValue.serverTimestamp(),
+      };
+
+      msgEditingController.clear();
+
+      await firestore
+          .collection('chatroom')
+          .doc(chatRoomId)
+          .collection('chats')
+          .add(messages);
+    } else {
+      print("Enter Some Text");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,9 +68,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
             Icons.arrow_back_ios,
           ),
         ),
-        title: const Text(
-          'Sheraz',
-          style: TextStyle(
+        title:  Text(
+          userMap['name'],
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -132,70 +78,80 @@ class _ConversationScreenState extends State<ConversationScreen> {
       ),
       body: Column(
         children: [
-          Expanded(
-            child: GroupedListView<Message, DateTime>(
-            padding: const EdgeInsets.all(8),
-            reverse: true,
-            order: GroupedListOrder.DESC,
-            useStickyGroupSeparators: true,
-            floatingHeader: true,
-            elements: messages,
-            groupBy: (message) => DateTime(
-              message.date.year,
-              message.date.month,
-              message.date.day,
-            ),
-            groupHeaderBuilder: (Message message) => SizedBox(
-              height: 40,
-              child: Center(
-                child: Card(
-                  color: Colors.deepOrange,
-                  child: Padding(
+           Expanded(
+            child: StreamBuilder<QuerySnapshot> (
+              builder: (BuildContext context,
+              AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.data != null) {
+                  return GroupedListView<dynamic,DateTime>(
                     padding: const EdgeInsets.all(8),
-                    child: Text(
-                      DateFormat.yMMMd().format(message.date),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    reverse: true,
+                    order: GroupedListOrder.DESC,
+                    useStickyGroupSeparators: true,
+                    floatingHeader: true,
+                    elements: snapshot.data?.docs as List<dynamic>,
+                    groupBy: (message) => DateTime(
+                      message.date.year,
+                      message.date.month,
+                      message.date.day,
+                    ),
+                    groupHeaderBuilder: (messages) => SizedBox(
+                      height: 40,
+                      child: Center(
+                        child: Card(
+                          color: Colors.deepOrange,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Text(
+                              DateFormat.yMMMd().format(messages.date),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ),
-            itemBuilder: (context, Message message) => Align(
-              alignment: message.isSendbyMe
-              ? Alignment.centerRight
-              : Alignment.centerLeft,
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: message.isSendbyMe
-                      ? BorderRadius.only(
-                    topLeft: Radius.circular(23),
-                    topRight: Radius.circular(23),
-                    bottomLeft: Radius.circular(23))
-                      : BorderRadius.only(
-                    topLeft: Radius.circular(23),
-                    topRight: Radius.circular(23),
-                    bottomRight: Radius.circular(23)),
-                  ),
-                color: message.isSendbyMe
-                ? Colors.deepOrange
-                : Colors. white,
-                elevation: 8,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Text(message.text,
-                    style: TextStyle(
-                      color: message.isSendbyMe
-                          ? Colors.white
-                          : Colors. black,
+                    itemBuilder: (context,  messages) => Align(
+                      alignment: messages.isSendbyMe
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: messages.isSendbyMe
+                              ? const BorderRadius.only(
+                              topLeft: Radius.circular(23),
+                              topRight: Radius.circular(23),
+                              bottomLeft: Radius.circular(23))
+                              : const BorderRadius.only(
+                              topLeft: Radius.circular(23),
+                              topRight: Radius.circular(23),
+                              bottomRight: Radius.circular(23)),
+                        ),
+                        color: messages.isSendbyMe
+                            ? Colors.deepOrange
+                            : Colors. white,
+                        elevation: 8,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Text(messages.text,
+                            style: TextStyle(
+                              color: messages.isSendbyMe
+                                  ? Colors.white
+                                  : Colors. black,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
+                  );
+                } else {
+                  return Container();
+                }
+              },
             ),
-          ),),
+      ),
           Row(
             children: [
               Expanded(
@@ -218,6 +174,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     child: TextField(
+                      cursorColor: Colors.deepOrange,
                       decoration: InputDecoration(
                           hintText: "Type here...",
                           hintStyle: const TextStyle(
@@ -232,7 +189,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                           ),
                           suffixIcon:  IconButton(
                             color: Colors.white38,
-                            onPressed: () => pickImage(),
+                            onPressed: () => {},
                             icon: const Icon(
                               FontAwesomeIcons.solidImage,
                               color: Colors.black,
@@ -242,15 +199,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
                             borderRadius: BorderRadius.circular(20),
                             borderSide: BorderSide.none,
                           )),
-                      onSubmitted: (text) {
-                        final message = Message(
-                            text: text,
-                            date: DateTime.now(),
-                            isSendbyMe: true,
-                        );
-
-                        setState(() => messages.add(message));
-                      },
                     ),
                   ),
 
@@ -259,7 +207,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: InkWell(
-                  onTap: () {},
+                  onTap: () {
+                    onSendMessage();
+                  },
                   child: Container(
                     height: 60,
                     width: 60,
@@ -285,13 +235,4 @@ class _ConversationScreenState extends State<ConversationScreen> {
       ),
     );
   }
-}
-
-class Message {
-  final String text;
-  final DateTime date;
-  final bool isSendbyMe;
-
-  const Message(
-      {required this.text, required this.date, required this.isSendbyMe});
 }

@@ -1,8 +1,11 @@
 import 'package:chat_app/Authentication%20Methods/Methods.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import 'Conversation.dart';
 
 class Chathome extends StatefulWidget {
   const Chathome({Key? key}) : super(key: key);
@@ -12,8 +15,10 @@ class Chathome extends StatefulWidget {
 }
 
 class _ChathomeState extends State<Chathome> {
-  late Map<String, dynamic> userMap;
+  Map<String, dynamic>? userMap;
   final searchEditingController = TextEditingController();
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
   bool isLoading = false;
 
   void onSearch() async {
@@ -31,6 +36,15 @@ class _ChathomeState extends State<Chathome> {
           });
           print(userMap);
     });
+  }
+
+  String chatRoomId(String user1, String user2) {
+    if (user1[0].toLowerCase().codeUnits[0] >
+        user2.toLowerCase().codeUnits[0]) {
+      return "$user1$user2";
+    } else {
+      return "$user2$user1";
+    }
   }
 
   @override
@@ -103,7 +117,9 @@ class _ChathomeState extends State<Chathome> {
                       ),
                       suffixIcon:  IconButton(
                         color: Colors.white38,
-                        onPressed: () {},
+                        onPressed: () {
+                          onSearch();
+                        },
                         icon: const Icon(
                           FontAwesomeIcons.magnifyingGlass,
                           color: Colors.black,
@@ -126,24 +142,37 @@ class _ChathomeState extends State<Chathome> {
                   backgroundImage: AssetImage('assets/Thor.png'),
                 ),
                 title: Text(
-                  userMap['name'],
+                  userMap!['name'],
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                    fontSize: 22,
                   ),
                 ),
                 subtitle: Text(
-                  userMap['email'],
+                  userMap!['email'],
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 trailing: const Icon(FontAwesomeIcons.solidMessage,
                   color: Colors.white,),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 onTap: () {
-                  // Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //         builder: (context) => const ConversationScreen()));
+                  String roomId = chatRoomId(
+                      auth.currentUser!.displayName!,
+                      userMap!['name']);
+
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ConversationScreen(
+                        chatRoomId: roomId,
+                        userMap: userMap!,
+                      ),
+                    ),
+                  );
                 },
               )
                   : Container(),

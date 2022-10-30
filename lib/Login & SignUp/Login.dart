@@ -1,3 +1,4 @@
+import 'package:chat_app/Login%20&%20SignUp/ForgotPassword.dart';
 import 'package:chat_app/Login%20&%20SignUp/SignUp.dart';
 import 'package:chat_app/Screens/ChatHome.dart';
 import 'package:email_validator/email_validator.dart';
@@ -256,7 +257,10 @@ class _LoginscreenState extends State<Loginscreen> {
                             height: 10.0,
                           ),
                           InkWell(
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                  context, MaterialPageRoute(builder: (_) => const Forgot() ));
+                            },
                             child: const Padding(
                               padding: EdgeInsets.only(right: 18.0),
                               child: Align(
