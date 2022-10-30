@@ -1,10 +1,9 @@
 import 'package:chat_app/Login%20&%20SignUp/SignUp.dart';
-import 'package:chat_app/Screens/Search%20Screen.dart';
+import 'package:chat_app/Screens/ChatHome.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
 import '../Authentication Methods/Methods.dart';
 
 class Loginscreen extends StatefulWidget {
@@ -202,7 +201,7 @@ class _LoginscreenState extends State<Loginscreen> {
                                           isLoading = false;
                                         });
                                         Navigator.push(
-                                            context, MaterialPageRoute(builder: (_) => const Search() ));
+                                            context, MaterialPageRoute(builder: (_) => const Chathome() ));
                                       } else {
                                         setState(() {
                                           isLoading = false;
